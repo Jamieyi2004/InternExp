@@ -301,14 +301,14 @@ git checkout master
 git pull origin master
 
 # 创建一个新分支
-git checkout -b feature/your-feature-name  # 替换为功能名称 b是指branch
+git checkout -b feature-name  # 替换为功能名称 b是指branch
 
 # 进行开发 提交代码
 git add .
 git commit -m "Add your feature description"  # 替换为具体的提交描述
 
 # 推送到远程分支
-git push origin feature/your-feature-name
+git push origin feature-name
 
 # 在 GitLab 上创建一个 Merge Request 合并develop分支
 
@@ -418,3 +418,415 @@ YApi不仅仅是管理与测试接口的工具，同时也提供了强大的文�
 
 - 在 Redis 中，所有的值都以字节数组的形式存储
 - reflect使用
+- 发版 = 上线
+- 合并到master != 部署
+- 本地只用安装navicat等工具即可,不需要安装数据库
+- 接口迁移小心数据结构
+- 在 Kubernetes 集群中，Ingress 是一种 API 对象，它管理外部访问集群内部服务的路由。Ingress 可以将外部请求根据不同的路由规则路由到所需的服务。以下是有关 Kubernetes Ingress 的一些关键点，帮助您理解它在接口迁移中的作用：
+
+Ingress 的作用
+
+
+外部访问控制:
+
+
+Ingress 允许您管理对 Kubernetes 服务的外部访问策略。这意味着您可以指定如何将外部请求路由到集群中的具体服务（通常是提升服务的可用性和安全性）。
+
+
+
+路由转发:
+
+
+Ingress 文件中的路由转发规则设置了请求如何被转发到不同的后端服务（在您的 caso中，这可能涵盖老的 PHP 服务和新的 Go 服务）。您可以根据请求的路径或主机名定义如何路由请求。
+
+
+
+负载均衡:
+
+
+Ingress 还能提供负载均衡功能，分发流量到多个后端服务实例，以提高可用性和性能。
+
+
+
+TLS/SSL 终止:
+
+
+Ingress 允许您配置 TLS，提供 HTTPS 支持，确保与客户端之间的安全通信。
+
+
+
+基于主机名和路径的路由:
+
+
+您可以根据请求的主机名和 URL 路径来决定流量应该转发到哪个具体服务。例如，假设有这样一个场景：
+
+所有对 /api/v1/ 的请求被转发到新的 Go 服务。
+所有对 /legacy/ 的请求被转发到老的 PHP 服务。
+
+
+
+
+
+示例 Ingress 资源
+以下是一个简单的 Ingress 资源定义示例，演示了如何将流量路由到不同的服务：
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: example-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - host: example.com
+    http:
+      paths:
+      - path: /api/v1/
+        pathType: Prefix
+        backend:
+          service:
+            name: go-service
+            port:
+              number: 80
+      - path: /legacy/
+        pathType: Prefix
+        backend:
+          service:
+            name: php-service
+            port:
+              number: 80
+
+在这个例子中：
+
+
+所有请求 example.com/api/v1/ 会被转发到名为 go-service 的服务。
+请求 example.com/legacy/ 则会被转发到名为 php-service 的服务。
+
+在接口迁移中的重要性
+在您的接口迁移过程中：
+
+
+增加灵活性: 通过 Ingress，您可以同时保留老的 PHP 接口与新的 Go 接口，逐步迁移，而无需立即关闭旧的服务。
+平滑过渡: 您可以逐步将流量从 PHP 服务转移到 Go 服务，进行 A/B 测试，方便监测新代码的表现和稳定性。
+管理复杂性: 随着系统的演进，Ingress 能帮助您简化不同服务之间的路由管理，降低维护复杂度。
+
+总结
+Kubernetes Ingress 文件中的路由转发功能在您的项目中起到了至关重要的作用。它不仅允许您控制和管理外部请求的路由，还有助于实现平滑的服务迁移与过渡。希望这能帮助您更好地理解 Ingress 在接口迁移过程中的作用！如果您有更多问题，欢迎继续提问。
+
+- Ingress 是 Kubernetes 中的一种 API 资源，主要用于管理外部访问到 Kubernetes 集群内部服务的访问控制和路由。它提供了一种灵活的方式，可以在 K8s 集群中定义和描述如何将外部 HTTP(S) 请求路由到内部服务。下面是关于 Ingress 的一些关键点：
+
+1. 基本概念
+
+定义外部访问: Ingress 用于定义如何访问在 Kubernetes 集群内运行的服务，它允许将外部 HTTP(S) 请求映射到相应的服务。
+路由规则: 以 URL 路径或主机名的方式定义路由规则，通过这些规则，Ingress 能够决定将请求转发到哪个具体的后端服务。
+
+2. Ingress 的组件
+
+Ingress Controller: Ingress 本身是一个定义，但实际上将请求路由到后端服务的是 Ingress Controller。其实，有多种 Ingress Controller 实现，如 NGINX、Traefik、HAProxy 等。Ingress Controller 监视 Ingress 资源的变化，并自动执行路由。
+
+3. 功能特性
+
+负载均衡: Ingress 可以将流量均匀地分配到多个 Pods。
+TLS/SSL 支持: 可以配置 TLS 证书以支持 HTTPS。
+基于路径和主机的路由: 通过定义不同的路径和主机名，可以将请求路由到不同的后端服务。
+定义重定向和重写: 可以根据需要指定请求重定向或 URL 重写规则。
+中间件支持: 一些 Ingress Controllers 支持自定义中间件，用于处理认证、流量控制等。
+
+4. 示例
+以下是一个简单的 Ingress 定义示例：
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: example-ingress
+spec:
+  rules:
+  - host: example.com
+    http:
+      paths:
+      - path: /api/v1/
+        pathType: Prefix
+        backend:
+          service:
+            name: my-api-service
+            port:
+              number: 80
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: my-frontend-service
+            port:
+              number: 80
+
+在这个例子中，所有对 example.com/api/v1/ 的请求将被路由到名为 my-api-service 的服务，而对 example.com/ 的请求则将被路由到 my-frontend-service 服务。
+
+5. 使用场景
+
+将不同的微服务暴露给外部用户。
+提供 API 网关功能，集中管理多个服务的外部流量。
+在服务迁移或升级时，为旧服务和新服务设置路由。
+
+总结
+Ingress 是 Kubernetes 中关键的流量管理功能，能够有效地将外部请求路由到正确的服务，并提供负载均衡和安全性。通过合理配置 Ingress，可以方便地管理和使用 K8s 集群内部的微服务架构。
+
+- DESC table_name;
+- tke是什么？
+
+## 2.19 
+
+- 使用快捷键‌：在Windows上按Ctrl + ,，在Mac上按Cmd + ,，可以直接打开VSCode设置页面。
+- `"workbench.editor.enablePreview": false` - 这将确保在打开新文件时，之前的文件不会被关闭。
+- git 操作小技巧 ： stash 暂存更改，以后可以直接应用
+- checklogin中间件需要token
+- yapi 请求参数不能手动输入，需要复制
+- git push -u origin fix-search-cache 设置上游 如果远程没有fix-search-cache这个分支的话，就会自动创建么
+- 大表建索引 会崩
+- EXPLAIN分析慢查询
+- develop一定要合！！！
+
+- 从堆栈追踪（stacktrace）部分，可以看到多个函数之间的调用关系。在您提供的调用栈中，按照从上到下的顺序，首先是处理错误的闭包，然后是导致错误的函数，然后是调用这个函数的函数，直到下方的主函数 main.main。
+- 在 Go 语言的堆栈追踪中，每个堆栈帧一般包含以下信息:包名和函数名、文件名和行号。
+- recover 只能捕获 panic，而不能捕获一个普通的 error。在 Go 中，panic 是一种用于处理程序错误的机制，用来立即停止当前函数的执行，并开始逐层向上返回，直到程序退出或者被 recover 捕获。
+- 在 Go 中，通常建议将 recover 的匿名函数放在函数的开始处，这样可以确保在发生 panic 时能立即捕获到它。
+- recover 必须与 defer 结合使用才能有效捕获 panic。recover 是一个内置函数，其主要作用是从 panic 中恢复控制并继续执行程序。当程序发生 panic 时，当前的执行流会被清空，而控制权会被转移到最近的带有 defer 的函数中。只有在该 defer 的执行上下文中调用 recover，才能捕获到 panic 的信息。
+- 在 Git 中，git merge 命令用于将一个分支的更改合并到当前分支。如果当前分支是 b1，并且你执行了 git merge b2，以下步骤和结果将会发生：
+
+1. 合并过程
+
+合并分支：Git 会尝试将 b2 分支的更改合并到当前分支 b1。
+快进合并与三方合并：
+
+快进合并（Fast-Forward Merge）：如果 b1 是 b2 的祖先（即 b2 是在 b1 分支的基础上创建的），则会执行快进合并。在这种情况下，Git 只需将 b1 指针移动到 b2 的最新提交。你会在历史中看不到合并提交。
+常规合并：如果 b1 和 b2 之间有不同的提交（即两者都有各自的提交历史），则会通过创建一个新的合并提交（merge commit）来整合这两个分支的更改。这个新的合并提交将有两个父提交：b1 的最新提交和 b2 的最新提交。
+
+
+
+2. 合并冲突
+
+在合并的过程中，如果 b1 和 b2 对同一文件的同一部分进行了不同的更改，Git 将无法自动合并这些更改。这种情况下，Git 会标记为冲突，允许你在解决冲突之后再完成合并。
+你可以使用 git status 查看冲突文件，并手动编辑冲突段落，完成后用 git add  标记文件为已解决，并使用 git commit 完成合并。
+
+3. 合并结果
+
+如果没有冲突：合并将成功，新的提交将被创建。如果是快进合并，将直接更新 b1 分支指向 b2 的最新提交。
+如果有冲突：你需要解决冲突后，才能完成合并。
+
+示例步骤
+假设当前在 b1 分支上，执行 git merge b2：
+
+
+
+无冲突且快进合并：
+
+git checkout b1
+git merge b2
+# `b1` 移动到 `b2` 的最新提交
+
+
+
+无冲突且创建合并提交：
+
+git checkout b1
+git merge b2
+# 创建合并提交，合并了 `b1` 和 `b2` 的最新更改
+
+
+
+有冲突：
+
+git checkout b1
+git merge b2
+# Git 会提示冲突，必须手动解决
+
+
+
+总结
+执行 git merge b2 时，b2 的更改将被合并到当前的 b1 分支。具体的合并方式（快进还是创建合并提交）以及是否产生冲突，取决于这两个分支的提交历史和更改内容。在执行 git merge b2 命令时，b2 分支本身不会被删除或修改。
+
+- 慢查询（Slow Query）是指在数据库操作中，执行时间超过设定阈值的查询。
+- 在 GORM（一个流行的 Go 语言 ORM 框架）中，Trace 方法会在每次执行 SQL 查询时被自动调用。这里一点很重要，就是 GORM 提供了一种机制，用于在执行数据库操作时进行自定义行为，比如日志记录、性能监控等，这通常是通过实现特定的接口来实现的。
+- context.Context 是 Go 语言中标准库提供的一个类型，用于在程序中传递上下文信息。它的主要作用是携带跨 API 边界的请求范围（request-scoped）、处理控制和取消信号以及请求的时间限制等信息。以下是对 context.Context 的详细解释：
+
+主要用途
+
+
+请求范围：
+
+
+context.Context 允许你在不同的 goroutine 中传递请求范围的值。比如，这个值可以是请求的 ID、用户身份、处理结果等。
+例如，HTTP 处理程序可以将用户的身份信息放入上下文中，然后在处理请求的过程中，可能会启动其他的 goroutine，在这些 goroutine 中也能访问到这个上下文信息。
+
+
+
+取消信号：
+
+
+上下文可以用来控制 goroutine 的取消。通过在上下文中设定 Done() 方法的取消信号，相关的 goroutine 可以在必要的时候停止执行。
+例如，假设一个请求是基于用户的操作发起的，如果用户在操作期间中断了请求，你可以使用上下文来取消与该请求相关的所有 goroutine。
+
+
+
+超时与截止日期：
+
+
+上下文还允许你定义超时和截止日期。当时间到达后，任何使用该上下文的操作都会收到取消信号。
+例如，如果你希望某个数据库查询在 10 秒内返回结果，你可以创建一个带有超时的上下文，以确保查询不会无休止地等待。
+
+
+
+例子
+下面的例子展示了如何使用 context.Context 来控制请求的生命周期，以及在 goroutine 中使用它。
+
+package main
+
+import (
+    "context"
+    "fmt"
+    "time"
+)
+
+func main() {
+    // 创建一个带有超时的上下文
+    ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+    defer cancel() // 确保释放资源
+
+    go func() {
+        // 模拟一个长时间运行的操作
+        time.Sleep(3 * time.Second)
+        fmt.Println("Completed long operation")
+    }()
+
+    select {
+    case <-ctx.Done():
+        fmt.Println("Operation cancelled:", ctx.Err())
+    }
+}
+
+在这个例子中：
+
+
+context.WithTimeout 创建了一个上下文，设置了 2 秒的超时限制。
+启动了一个 goroutine，它会执行一个 3 秒的操作。
+当运行时间超过 2 秒时，主 goroutine 会收到上下文的取消信号，并通过 ctx.Done() 得知操作已被取消，同时可以访问 ctx.Err() 来获取错误信息。
+
+使用场景
+
+HTTP 处理程序：在处理来自客户端的请求时，使用上下文可以传递请求范围的数据，如请求 ID，身份验证信息等。
+数据库操作：在数据库查询中，可以使用上下文进行超时控制，确保操作不会无休止地等待。
+并发处理：在并发程序中，使用上下文传递取消信号和请求信息，有助于管理多个 goroutine 之间的交互。
+
+总结
+context.Context 是一个很有用的工具，它能够在 Go 的并发编程中提供请求范围的控制和数据管理。它帮助开发者更清晰地组织代码，并在运行时对操作进行控制，适应复杂应用程序中的各种需求。使用上下文有助于保持程序的清晰度和可维护性。
+
+- SHOW INDEX FROM script_strategy_detail;
+- 堡垒机（Bastion Host）是一种安全机制，通常用于增强对关键系统（如生产环境数据库服务器）的访问控制与审计。它的主要作用是作为一个中间层或代理，允许用户通过堡垒机连接到后端的目标服务器，但对后端服务器的直接访问则被限制。
+
+堡垒机的主要特点
+
+
+安全控制：
+
+
+堡垒机作为入口，所有的访问请求首先会通过它进行访问控制和身份验证，从而确保只有经过授权的用户才能访问下游资源。
+
+
+
+审计与监控：
+
+
+堡垒机可以记录用户的所有操作（如SSH登录、命令执行等），为后续的审计和监控提供详细的日志，以便事后分析和取证。
+
+
+
+减少攻击面：
+
+
+通过堡垒机接入后端服务器，避免了直接在生产环境中暴露数据库或关键服务，减少了潜在的安全风险。
+
+
+
+集中管理：
+
+
+建立一个集中管理的接入点，便于管理员管理和监控用户的访问权限和行为。
+
+
+
+为什么连接生产环境的数据库需要堡垒机
+
+
+增强安全性：
+
+
+在生产环境中，数据库通常包含敏感信息，利用堡垒机可以大幅提升对数据库访问的安全性，防止未授权访问。
+
+
+
+合规性：
+
+
+在一些行业如金融、医疗等，对数据访问有严格的合规要求，堡垒机的使用可以帮助满足这些要求，提供必要的审计日志。
+
+
+
+隔离网络：
+
+
+堡垒机确保内网和外网的隔离，开发人员无法直接连接到生产数据库，而是通过堡垒机这样的中介进行访问，进一步保护网络架构。
+
+
+
+控制访问权限：
+
+
+通过堡垒机可以更加灵活地管理用户权限，提供针对不同角色的不同访问策略，确保用户只能访问与其工作相关的资源。
+
+
+
+减少人为错误：
+
+
+通过堡垒机集中管理访问，可以减少不必要的人为错误和配置问题，避免在生产环境中直接执行不当操作。
+
+
+
+简化访问管理：
+
+
+管理员可以在堡垒机上配置、管理和删除用户访问，而不需要单独在每台机器上进行相应配置，简化了管理过程。
+
+
+
+总结
+堡垒机是连接生产环境数据库的重要安全措施，能够大幅提升系统的安全性、合规性和管理效率，是现代IT架构中不可或缺的一部分。通过使用堡垒机，可以有效地保护关键数据，防止数据泄露和未授权访问，提升组织的整体安全防护水平。
+
+- EXPLAIN 是 MySQL 中用于分析 SQL 查询性能的重要工具。通过 EXPLAIN 命令，用户可以查看查询的执行计划，从而了解 MySQL 将如何处理该请求。这对于性能调优和优化查询非常有帮助。
+- id_rsa 和 id_rsa.pub 是用于 SSH（Secure Shell）协议的密钥文件的常见命名约定，通常用来进行公钥认证。其中的 id 指代身份（identity），而 rsa 则指代所使用的加密算法（RSA算法）。
+- 月活：
+SELECT COUNT(*) AS user_count
+FROM user
+WHERE lasttime >= NOW() - INTERVAL 1 MONTH;
+
+- 是的，在 SQL 中，DESC 可以用于两种不同的上下文中，具体取决于它的使用方式
+- 同一个数据库，不同的表可以用不同的引擎
+- mysql查询语句，查询时间和获取时间区别
+- 在 MySQL 中，如果你希望强制某个查询使用特定的索引，可以使用 FORCE INDEX 语法。这可以帮助你在某些情况下优化查询性能，特别是当 MySQL 查询优化器选择了不理想的索引时。
+- 你可以将 MySQL 数据库中的数据同步到 Elasticsearch（ES）中，以提高搜索性能和数据访问速度。使用 Elasticsearch 进行查询可以大幅度提高在大数据集上的搜索效率，特别是在需要进行复杂查询或全文搜索时。
+- 在 全文搜索、复杂查询和 大规模数据处理 场景下，Elasticsearch 通常会比 MySQL 快。
+在涉及 高事务处理、复杂 join 查询、或需要严格 数据一致性 的场景下，MySQL 可能更合适。
+Elasticsearch 的数据主要存储在磁盘上，但也会利用内存来提高查询性能和响应速度。
+
+- 堡垒机 给运维公钥 然后常规和SSH都要填写
+- 和PC和测试对接
+
+## 2.20
+
+### MySQL
+
+```bash
+brew install mysql
+brew services start mysql
+```
+
+### commend + r 刷新
