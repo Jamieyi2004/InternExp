@@ -829,4 +829,166 @@ brew install mysql
 brew services start mysql
 ```
 
-### commend + r 刷新
+### command + r 刷新
+### command + shift + p VSCode 命令面板
+
+## 2.21
+
+### 1.18 版本go 安装插件太麻烦了，升级
+
+使用 goenv 工具来升级 Go 版本非常简单。以下是详细的步骤：
+
+1. 查看可用的 Go 版本
+首先，您可以查看可用的 Go 版本列表，确认您想要升级到的版本：
+
+goenv install -l
+
+这将列出所有可用的 Go 版本，您可以选择一个目标版本。
+
+2. 安装新版本
+选择一个您希望安装的 Go 版本，比如假设您要安装 1.20.5，可以使用以下命令：
+
+goenv install 1.20.5
+
+这个过程可能会持续几分钟，具体时间取决于网络速度和您的计算机性能。
+
+3. 设置全局或局部版本
+安装完成后，您可以设置新安装的 Go 版本为全局使用的版本：
+
+goenv global 1.20.5
+
+或者，如果您只想在特定的项目中使用该版本，可以在项目目录中使用：
+
+cd /path/to/your/project
+goenv local 1.20.5
+
+这样会在您的项目文件夹中创建一个 .go-version 文件，指定该项目使用的 Go 版本。
+
+4. 验证升级
+最后，您可以通过以下命令确认 Go 版本已成功升级：
+
+go version
+
+这应该会显示您刚安装的新版本。
+
+小结
+通过上述步骤，您可以使用 goenv 工具方便地升级 Go 版本。如果您在执行过程中遇到任何问题，欢迎随时提问！
+
+### 插件
+go install golang.org/x/tools/gopls@latest         # Language Server from Google
+go install github.com/cweill/gotests/...@v1.6.0   # Generate unit tests
+
+go install github.com/fd/sort+tags/...@v1.17.0      # Modify tags on structs
+go install github.com/impl@v1.4.0                    # Stubs for interfaces
+
+go install golang.org/x/play@v1.0.0                  # The Go playground
+go install github.com/go-delve/delve/cmd/dlv@latest  # Go debugger (Delve)
+go install honnef.co/go/tools/cmd/staticcheck@latest # Linter
+
+
+### 
+(base) applychartdeiMac-2:YJM applychart$ chmod a+w ~/.bash_profile
+chmod: Unable to change file mode on /Users/applychart/.bash_profile: Operation not permitted
+(base) applychartdeiMac-2:YJM applychart$ sudo chmod a+w ~/.bash_profile
+Password:
+
+### tmd zsh和bash都要配置
+哪VSCode用的是什么？
+
+export PATH="$HOME/.goenv/shims:$HOME/.goenv/bin:$PATH"
+
+# 对于 Bash
+source ~/.bash_profile   # 或 source ~/.bashrc
+
+# 对于 Zsh
+source ~/.zshrc
+
+
+
+### 
+从您提供的 PATH 输出来看，/Users/applychart/.goenv/shims 实际上在路径的后面部分，而 /Users/applychart/.goenv/versions/1.18.10/bin 仍然出现在 PATH 的前面。这就是为什么在执行 go version 时仍然指向 1.18.10 的原因。让我们解决这个问题。
+
+解决步骤
+1. 更新 PATH 设置
+您需要确保 /Users/applychart/.goenv/shims 在 PATH 的最前面，且 1.18.10/bin 不在 PATH 中。为了做到这一点，请打开您的 shell 配置文件（例如 ~/.bash_profile, ~/.bashrc 或 ~/.zshrc），并确保将以下内容放置在文件的最前面：
+
+export PATH="$HOME/.goenv/shims:$HOME/.goenv/bin:$PATH"
+
+确保没有多余的 versions/1.18.10/bin 路径。
+
+2. 重新加载配置文件
+保存更改后，重新加载您的 shell 配置文件：
+
+# 对于 Bash
+source ~/.bash_profile   # 或 source ~/.bashrc
+
+# 对于 Zsh
+source ~/.zshrc
+
+3. 确认 PATH 更新
+再次检查您的 PATH 变量，确保 /Users/applychart/.goenv/shims 在最前面，而不再包含 /Users/applychart/.goenv/versions/1.18.10/bin：
+
+echo $PATH
+
+4. 强制重新哈希
+然后，使用以下命令强制重新哈希 goenv：
+
+goenv rehash
+
+5. 检查 Go 版本
+最后，检查 go 命令的路径和版本，以确保现在指向 1.23.6：
+
+which go
+go version
+
+如果一切顺利，which go 输出应该是 /Users/applychart/.goenv/versions/1.23.6/bin/go，并且 go version 输出应该是 go version go1.23.6 ...。
+
+总结
+经过以上步骤后，您应该能够成功切换到 Go 1.23.6，并解决版本指向不正确的问题。如果仍然存在问题，请继续告知我，我们可以进一步排查。
+
+### 妈的 重启VSCode在能用命令面板安装插件
+
+ls $(go env GOPATH)/bin
+
+### git fetch origin 
+git checkout -b refactor-client-check origin/refactor-client-check
+
+### fetch vs. pull
+
+git fetch 和 git pull 都是用于与远程 Git 仓库交互的命令，但它们之间存在一些重要的区别。下面是对这两个命令的详细解释：
+
+1. git fetch
+
+功能：fetch 命令从远程仓库获取所有的更新内容（例如，分支、标签、提交等），但不会自动合并到当前的工作分支。
+用法：git fetch origin
+
+
+效果：
+
+获取更新后，你可以查看远程仓库的状态、比较更改或检查新的提交。
+你的当前分支不会受到影响，仍然保持不变。此时，你需要手动合并更改（使用 git merge）或者切换到新的分支使用（可以用 git checkout）。
+
+
+适用场景：当你想首先查看远程更新的内容，然后再决定是否要合并时，使用 git fetch 是一种比较安全的做法。
+
+2. git pull
+
+功能：pull 命令实际上是 fetch 和 merge 的组合。它从远程仓库获取更新并立即将这些更新合并到你的当前工作分支中。
+用法：git pull origin main
+
+
+效果：
+
+从远程仓库获取最新的提交，并自动尝试将这些更改合并到你当前的分支。
+如果合并成功，工作树将更新为包含新的更改。如果出现冲突，你需要解决冲突后才能完成合并。
+
+
+适用场景：当你希望快速获取远程的更改并将其应用到当前分支时，git pull 非常方便。
+
+总结
+
+git fetch：只获取数据，且不会导致任何更改发生。适合在选择是否合并之前先查看远程的更新。
+git pull：既获取更新又自动合并，适合快速更新当前分支。
+
+在使用 git pull 时要注意，因为合并过程可能引入冲突，因此在复杂的工作流中，先使用 git fetch 来预览更新，再决定是否合并通常是一种更安全的方式。
+
